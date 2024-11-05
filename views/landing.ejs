@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* General Styling */
+        body {
+            background-image: url("Yes! We Are Back.jpg"); /* Replace with your background image URL */
+            background-size: cover; /* Cover the entire viewport */
+            background-position: center; /* Center the image */
+            color: #1c1c1c; /* Dark grey-black text */
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh; /* Ensure full height on all devices */
+            margin: 0;
+            padding: 20px; /* Padding for smaller screens */
+            text-align: center;
+            backdrop-filter: blur(5px); /* Blur effect behind the text */
+        }
+
+        header {
+            width: 100%;
+            padding: 20px;
+            background-color: rgba(255, 193, 7, 0.9); /* Semi-transparent yellow header */
+            color: black;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        h1 {
+            margin-bottom: 15px;
+            font-size: 2.5rem;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            color: #666; /* Slightly darker text for contrast */
+        }
+
+        /* Card Styling */
+        .card {
+            background: rgba(255, 255, 255, 0.8); /* Semi-transparent white for contrast */
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-top: 100px; /* Space for the header */
+            width: 90%;
+            max-width: 600px; /* Max width for the card */
+        }
+
+        /* Button Styling */
+        a {
+            display: inline-block;
+            padding: 12px 30px;
+            margin: 10px; /* Space between buttons */
+            background-color: #ffc107; /* Yellow button */
+            color: black; /* Black text */
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-size: 1.1rem; /* Button font size */
+        }
+
+        a:hover {
+            background-color: #e0a800; /* Darker yellow on hover */
+            transform: scale(1.05); /* Slight zoom effect */
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            p {
+                font-size: 1rem;
+            }
+
+            a {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            p {
+                font-size: 0.9rem;
+            }
+
+            a {
+                width: 100%; /* Full-width buttons for small screens */
+                box-sizing: border-box;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>Louie and Fhey Hardware and Construction Supply</h2> <!-- Header Title -->
+    </header>
+    <div class="card">
+        <h1>Welcome to Our Shop!</h1>
+        <p>"Your Partner in Every Build, Big or Small."</p>
+        <a href="/login"><i class="fa-solid fa-right-to-bracket"></i> Login</a> <!-- Link to the login page -->
+        <a href="/register"><i class="fa-solid fa-user-plus"></i> Register</a> <!-- Link to the registration page -->
+    </div>
+</body>
+</html>
