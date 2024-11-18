@@ -6,6 +6,8 @@ const SECRET_KEY = process.env.SECRET_KEY || 'defaultSecretKey'; // Use environm
 
 const itemsPerPage = 10; // Set items per page
 const verificationCodes = {}; // Temporary storage
+ // Controller Function
+ const stripe = require('stripe')('sk_test_51QByzxDiiet8LsHjyPEAOe1d9RXocsOpYMXuspmrHC8XPqbrJhTugNdvldsvDHaAxVEXbcr9cxsCFqsa6v7DMEFS002wB9LZCq');
 
 const show = {
     showlanding: (req, res) => {
@@ -233,6 +235,9 @@ const show = {
     
         const userId = req.session.user.id;
         const items = req.session.checkoutItems;
+        const subtotalEl = req.session.subtotalEl;
+        const taxEl = req.session.taxEl;
+        const totalEl = req.session.totalEl;
     
         if (!items || !Array.isArray(items) || items.length === 0) {
             req.flash('error', 'No items selected for checkout.');
@@ -244,19 +249,15 @@ const show = {
     
         Promise.all([
             User.getBillingDetail(userId),
-            new Promise((resolve, reject) => {
-                User.totalrecords(userId, (err, totalRecords) => {
-                    if (err) reject(err);
-                    else resolve(totalRecords);
-                });
-            }),
         ])
-        .then(([billingDetail, totalRecords]) => {
+        .then(([billingDetail]) => {
             res.render('checkout', {
                 user: req.session.user,
                 billing: billingDetail,
                 items: items,
-                totalRecords,
+                subtotalEl: subtotalEl,
+                taxEl : taxEl,
+                totalEl : totalEl,
             });
         })
         .catch(err => {
@@ -574,7 +575,7 @@ const user = {
         });
       },
       checkoutSummary: (req, res) => {
-        const { items } = req.body;
+        const { items, subtotalEl, taxEl, totalEl } = req.body;
     
         // Log items to debug
         console.log('Received Items for Checkout:', items);
@@ -587,10 +588,40 @@ const user = {
     
         // Save the items to the session
         req.session.checkoutItems = items;
+        req.session.subtotalEl = subtotalEl;
+        req.session.taxEl = taxEl;
+        req.session.totalEl = totalEl;
     
         // Redirect to the GET route
         res.status(200).send({ success: true });
-    }
+    },
+    createPaymentIntent: async (req, res) => {
+        const { amount } = req.body;
+      
+        // Validate amount
+        if (!amount || amount <= 0) {
+          return res.status(400).json({ error: 'Invalid payment amount' });
+        }
+      
+        try {
+          // Create the payment intent
+          const paymentIntent = await stripe.paymentIntents.create({
+            amount, // Amount in cents
+            currency: 'php',
+            payment_method_types: ['card'],
+          });
+      
+          console.log('Payment Intent Created:', paymentIntent);
+          res.json({ clientSecret: paymentIntent.client_secret });
+        } catch (error) {
+          console.error('Error creating Payment Intent:', error.message);
+          res.status(500).json({ error: error.message });
+        }
+      },
+      
+   
+
+
     
     
     
@@ -658,6 +689,8 @@ const admin = {
       }
 
 };
+
+ 
 
 module.exports = {
     show,

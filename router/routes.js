@@ -18,7 +18,7 @@ router.get('/billing-detail', Mcontroller.show.showBillingDetail);
 router.get('/profile', Mcontroller.show.showProfile);
 router.get('/checkout', Mcontroller.show.showCheckout);
 
-
+router.post('/create-payment-intent', Mcontroller.user.createPaymentIntent);
 router.get('/adminProduct', Mcontroller.admin.showProd);
 router.get('/adminUser', Mcontroller.admin.showUser);
 router.post('/editProduct',Mcontroller.admin.updateProducts);

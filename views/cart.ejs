@@ -91,7 +91,7 @@
     const subtotalEl = document.getElementById('subtotal');
     const taxEl = document.getElementById('tax');
     const totalEl = document.getElementById('total');
-    const shippingCost = 5.00;
+    const shippingCost = 800.00;
     const taxRate = 0.08;
     const selectAllCheckbox = document.getElementById('select-all');
     const selectItemCheckboxes = document.querySelectorAll('.select-item');
@@ -196,6 +196,9 @@
     // Handle checkout
     document.querySelector('button.checkout').addEventListener('click', async () => {
     const checkedItems = getCheckedItems(); // Collect checked items
+    const subtotalEl = document.getElementById('subtotal').innerHTML;
+    const taxEl = document.getElementById('tax').innerHTML;
+    const totalEl = document.getElementById('total').innerHTML;
     if (checkedItems.length === 0) {
         alert('No items selected for checkout.');
         return;
@@ -205,7 +208,7 @@
         const response = await fetch('/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items: checkedItems }), // Send items
+            body: JSON.stringify({ items: checkedItems, subtotalEl : subtotalEl, taxEl : taxEl, totalEl : totalEl }), // Send items
         });
 
         if (response.ok) {
