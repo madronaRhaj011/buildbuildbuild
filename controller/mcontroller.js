@@ -1,10 +1,10 @@
 const bcrypt = require('bcrypt');
-const nodemailer = require('nodemailer');  // Import nodemailer for sending emails
+const nodemailer = require('nodemailer');  
 const jwt = require('jsonwebtoken');
 const User = require('../model/userModel');
 const SECRET_KEY = process.env.SECRET_KEY || 'defaultSecretKey'; // Use environment variable for security
 
-
+const itemsPerPage = 10; // Set items per page
 const verificationCodes = {}; // Temporary storage
 
 const show = {
@@ -22,8 +22,16 @@ const show = {
             req.flash('error', 'Please log in first');
             return res.redirect('/login');
         }
-        // User is authenticated, render the dashboard
-        res.render('dash', { user: req.session.user });
+        User.totalrecords(req.session.user.id,(err, totalRecords) => {
+            if (err) {
+                console.error('Error retrieving total records:', err);
+                return res.status(500).send('Error retrieving total records');
+            }
+
+            // Redirect to dashboard with totalRecords
+            console.log('User authenticated:', user);
+            res.render('dash', { user, totalRecords });
+        });
     },
     showMaterials: (req, res) => {
         if (!req.session.user) {
@@ -32,58 +40,201 @@ const show = {
         }
         Promise.all([
             User.getAllProd(),
-        ]).then(([productList]) =>{
+            User.getCategory(),
+            new Promise((resolve, reject) => {
+                User.totalrecords(req.session.user.id, (err, totalRecords) => {
+                    if (err) reject(err);
+                    else resolve(totalRecords);
+                });
+            })
+        ])
+        .then(([productList, categoryList,totalRecords]) => {
             res.render('materials', {
-                user:req.session.user,
-                product : productList,
+                user: req.session.user,
+                product: productList,
+                category: categoryList,
+                totalRecords,
             });
-        }).catch(err => {
-            throw err;
+        })
+        .catch(err => {
+            console.error('Error in showMaterials:', err);
+            res.status(500).send('Server error');
         });
     }, 
     showOverview: async (req, res) => {
+        // Check if the user is logged in
         if (!req.session.user) {
             req.flash('error', 'Please log in first');
             return res.redirect('/login');
         }
+    
         try {
             const id = req.params.id;
-            // Retrieve specific product by ID and all other products concurrently
-            const [product, otherProducts] = await Promise.all([
+    
+            // Concurrently fetch the product, other products, and total records for the user
+            const [product, otherProducts, totalRecords] = await Promise.all([
                 User.getProductById(id),
-                User.getAllProdexcept(id)
+                User.getAllProdexcept(id),
+                new Promise((resolve, reject) => {
+                    User.totalrecords(req.session.user.id, (err, count) => {
+                        if (err) reject(err);
+                        else resolve(count);
+                    });
+                })
             ]);
     
-            // Check if the specific product was found
+            // Check if the product with the specified ID exists
             if (!product || product.length === 0) {
                 return res.status(404).send("Product not found");
             }
     
-            // Render the 'material-overview' page with both the product and other products list
+            // Render the 'material-overview' view with all fetched data
             res.render('material-overview', {
                 user: req.session.user,
-                prod: product[0],   // Main product data
-                products: otherProducts  // List of all other products
+                prod: product[0],           // Main product data (first element in the array)
+                products: otherProducts,     // List of all other products
+                totalRecords                 // Total records count
             });
         } catch (err) {
             console.error('Error fetching product data:', err);
             res.status(500).send('Internal Server Error');
         }
-    },
-    
-    
+    },    
     showContactus: (req, res) => {
-        res.render('contactUs');
-    },
+        if (!req.session.user) {
+            req.flash('error', 'Please log in first');
+            return res.redirect('/login');
+        }
+    
+        const userId = req.session.user.id;
+    
+        // Fetch total records for the logged-in user
+        new Promise((resolve, reject) => {
+            User.totalrecords(userId, (err, totalRecords) => {
+                if (err) reject(err);
+                else resolve(totalRecords);
+            });
+        })
+        .then(totalRecords => {
+            // Render the contactUs view with totalRecords
+            res.render('contactUs', {
+                user: req.session.user,
+                totalRecords // Pass totalRecords to the view
+            });
+        })
+        .catch(err => {
+            console.error('Error fetching total records:', err);
+            res.status(500).send('Internal Server Error');
+        });
+    },    
     showAdminDash: (req, res) => {
         res.render('adminDashboard');
     },
-    showForgotPassword: (req, res) => {
-        res.render('forgotPassword');
+    showEmailVerification: (req, res) => {
+        res.render('emailVerification');
     },
     showResetPassword: (req, res) => {
         res.render('resetPassword');
     },
+    showCart: (req, res) => {
+        if (!req.session.user) {
+            req.flash('error', 'Please log in first');
+            return res.redirect('/login');
+        }
+    
+        const userId = req.session.user.id;
+        const currentPage = parseInt(req.query.page) || 1; // Get current page from query, default to 1
+        const offset = (currentPage - 1) * itemsPerPage;
+    
+        Promise.all([
+            User.getCartItems(userId, itemsPerPage, offset), // Pass limit and offset
+            new Promise((resolve, reject) => {
+                User.totalrecords(userId, (err, totalRecords) => {  
+                    if (err) reject(err);
+                    else resolve(totalRecords);
+                });
+            })
+        ])
+        .then(([cartItemList, totalRecords]) => {
+            const totalPages = Math.ceil(totalRecords / itemsPerPage);
+    
+            res.render('cart', {
+                user: req.session.user,
+                cartItem: cartItemList,     // List of cart items
+                currentPage,                // Current page
+                totalPages,                 // Total pages for pagination
+                totalRecords                // Total record count
+            });
+        })
+        .catch(err => {
+            console.error('Error fetching cart data:', err);
+            res.status(500).send('Internal Server Error');
+        });
+    },    
+    showBillingDetail: (req, res) => {
+        if (!req.session.user) {
+            req.flash('error', 'Please log in first');
+            return res.redirect('/login');
+        }
+    
+        const id = req.session.user.id;
+        console.log('User ID:', id);
+    
+        Promise.all([
+            // Fetch billing details
+            User.getBillingDetail(id),
+            // Wrap totalrecords in a Promise to use it with Promise.all
+            new Promise((resolve, reject) => {
+                User.totalrecords(id, (err, totalRecords) => {
+                    if (err) reject(err);
+                    else resolve(totalRecords);
+                });
+            })
+        ])
+        .then(([billingdetail, totalRecords]) => {
+            // Render the billingDetail view with user, billing, and totalRecords data
+            res.render('billingDetail', {
+                user: req.session.user,
+                billing: billingdetail,
+                totalRecords // Pass totalRecords to the view
+            });
+        })
+        .catch(err => {
+            console.error('Error fetching billing data:', err);
+            res.status(500).send('Internal Server Error');
+        });
+    },    
+    showProfile: (req, res) => {
+        if (!req.session.user) {
+            req.flash('error', 'Please log in first');
+            return res.redirect('/login');
+        }
+    
+        const userId = req.session.user.id;
+    
+        // Fetch total records for the logged-in user
+        new Promise((resolve, reject) => {
+            User.totalrecords(userId, (err, totalRecords) => {
+                if (err) reject(err);
+                else resolve(totalRecords);
+            });
+        })
+        .then(totalRecords => {
+            // Render the profile view with user and totalRecords data
+            res.render('profile', {
+                user: req.session.user,
+                totalRecords // Pass totalRecords to the view
+            });
+        })
+        .catch(err => {
+            console.error('Error fetching total records:', err);
+            res.status(500).send('Internal Server Error');
+        });
+    },
+    
+    
+    
+    
     
 
 };
@@ -133,20 +284,19 @@ const user = {
     login: (req, res) => {
         const { email, password } = req.body;
         let errors = [];
-
-        if(email === "Admin" && password == "adminako"){
-            res.redirect('admin');
+    
+        if (email === "Admin" && password === "adminako") {
+            return res.redirect('admin');
         }
-
+    
         if (!email || !password) {
-            // errors.push({ msg: 'Both email and password are required' });
-            req.flash('error', 'Both email and password are required')
+            req.flash('error', 'Both email and password are required');
         }
-
+    
         if (errors.length > 0) {
             return res.render('login', { errors, email, password });
         }
-
+    
         // Authenticate user
         User.authenticate(email, password, (err, user) => {
             if (err) {
@@ -157,13 +307,23 @@ const user = {
                 console.log('Invalid credentials');
                 return res.status(400).render('login', { errors: [{ msg: 'Invalid credentials' }], email });
             }
-
-            // Set user session and redirect to dashboard
+    
+            // Set user session and retrieve total records
             req.session.user = user;
-            console.log('User authenticated:', user);
-            res.redirect('dash');
+    
+            // Fetch total records and pass them to the dashboard
+            User.totalrecords(user.id,(err, totalRecords) => {
+                if (err) {
+                    console.error('Error retrieving total records:', err);
+                    return res.status(500).send('Error retrieving total records');
+                }
+                console.log(totalRecords);
+                // Redirect to dashboard with totalRecords
+                console.log('User authenticated:', user);
+                res.render('dash', { user, totalRecords });
+            });
         });
-    },
+    },        
     sendVerificationCode: async (req, res) => {
         const { email } = req.body;
     
@@ -258,18 +418,129 @@ const user = {
         });
     },
     addToCart: (req, res) => {
-        const { user_id, productId, quantity, price } = req.body;
-        // Call model to insert data into the cart table
-        User.addToCart({ user_id, productId, quantity, price}, (err) => {
+        const { user_id, productId, quantity, totalPrice } = req.body;
+    
+        // Call model to handle add or update in the cart table
+        User.addToCart({ user_id, productId, quantity, totalPrice }, (err) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ success: false, message: 'Failed to add to cart' });
             }
-
-            // res.status(200).json({ success: true, message: 'Product added to cart' });
+    
             res.redirect('/materials');
         });
+    },       
+    updateProfile: (req, res) => {
+        const id = req.body.id;
+        const data = req.body;
+        User.updateProfile(id, data, (err) => {
+            if (err) {
+                console.error("Error updating profile:", err);
+                return res.redirect('/dash');
+            } 
+            res.redirect('/login');
+        });
     },
+        // controllers/cartController.js
+    deleteCartItem: (req, res) => {
+        const cartId = req.params.id;
+
+        // Step 1: Get the product ID and quantity from the cart item before deletion
+        User.getCartItemById(cartId, (err, cartItem) => {
+            if (err || !cartItem) {
+                console.error('Error fetching cart item:', err);
+                return res.status(500).send('Internal Server Error');
+            }
+
+            const productId = cartItem.product_id;
+            const quantity = cartItem.quantity;
+
+            // Step 2: Delete the cart item
+            User.deleteCartItem(cartId, (err) => {
+                if (err) {
+                    console.error('Error deleting cart item:', err);
+                    return res.status(500).send('Internal Server Error');
+                }
+
+                // Step 3: Update the product stock by adding the quantity back
+                User.updateProductStock(productId, quantity, (err) => {
+                    if (err) {
+                        console.error('Error updating product stock:', err);
+                        return res.status(500).send('Internal Server Error');
+                    }
+
+                    // Redirect back to the cart page after successful deletion and stock update
+                    res.redirect('/cart');
+                });
+            });
+        });
+    },
+    updateQuantity: (req, res) => {
+        const { cart_id, product_id, quantity, price } = req.body;
+    
+        // Step 1: Fetch the current cart item
+        User.getCartItemById(cart_id, (err, cartItem) => {
+            if (err || !cartItem) {
+                console.error('Error fetching cart item:', err);
+                return res.status(500).send('Internal Server Error');
+            }
+    
+            const currentQuantity = cartItem.quantity;
+            const productPrice = price; // Assume price is included in the cart item
+            const newTotalPrice = productPrice * quantity;
+    
+            // Step 2: Update the product stock by adding the current cart quantity back
+            User.updateProductStock(product_id, currentQuantity, (err) => {
+                if (err) {
+                    console.error('Error restoring product stock:', err);
+                    return res.status(500).send('Internal Server Error');
+                }
+    
+                // Step 3: Update the cart item with the new quantity and total price
+                User.updateCartItem(cart_id, quantity, newTotalPrice, (err) => {
+                    if (err) {
+                        console.error('Error updating cart item:', err);
+                        return res.status(500).send('Internal Server Error');
+                    }
+    
+                    // Step 4: Update the product stock based on the new quantity
+                    User.updateProductStock(product_id, -quantity, (err) => {
+                        if (err) {
+                            console.error('Error adjusting product stock:', err);
+                            return res.status(500).send('Internal Server Error');
+                        }
+    
+                        // Step 5: Redirect back to the cart page after successful update
+                        res.redirect('/cart');
+                    });
+                });
+            });
+        });
+    },
+    addBillingDetail:(req, res) => {
+        const data = {
+          user_id: req.session.user.id,
+          fullname: req.body.fullname,
+          contact: req.body.contact,
+          address: req.body.address,
+          note: req.body.note,
+        };
+      
+        // Insert data into the database
+        User.addBillingDetail(data, (err, result) => {
+          if (err) {
+            console.error('Database insertion error:', err); // Log error for debugging
+            return res.status(500).send('Error inserting product');
+          }
+          res.redirect('/billing-detail'); // Adjust redirection as needed
+        });
+      }
+    
+    
+
+
+    
+    
     
 };
 
@@ -305,8 +576,31 @@ const admin = {
             res.redirect('/adminProduct');
         });
     },
+    addProducts:(req, res) => {
+        if (!req.file) {
+          return res.status(400).send('No file uploaded');
+        }
+      
+        const productData = {
+          name: req.body.productName,
+          price: req.body.price,
+          description: req.body.description,
+          stock: req.body.stock,
+          image_url: `/uploads/${req.file.filename}`,
+          category: req.body.category
+        };
+      
+        // Insert data into the database
+        User.insertProduct(productData, (err, result) => {
+          if (err) {
+            console.error('Database insertion error:', err); // Log error for debugging
+            return res.status(500).send('Error inserting product');
+          }
+          res.redirect('/adminProduct'); // Adjust redirection as needed
+        });
+      }
 
-}
+};
 
 module.exports = {
     show,

@@ -1,41 +1,8 @@
+<%- include('partials/start') %>
 <%- include('partials/nav') %>
 <%- include('partials/hero') %>
 <%- include('partials/footer') %>
-
-  <script>
-    const dropdown = document.querySelector('button');
-    const menu = document.querySelector('.dropdown-menu');
-    const chevron = document.querySelector('.chevron');
-    
-    dropdown.addEventListener('click', () => {
-      menu.classList.toggle('opacity-100');
-      menu.classList.toggle('translate-y-0');
-      chevron.classList.toggle('rotate-180');
-    });
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!dropdown.contains(e.target)) {
-        menu.classList.remove('opacity-100', 'translate-y-0');
-        chevron.classList.remove('rotate-180');
-      }
-    });
-    // Toggle dropdown visibility
-    function toggleDropdown() {
-      const dropdownMenu = document.getElementById("dropdownMenu");
-      dropdownMenu.classList.toggle("hidden");
-    }
-
-    // Close dropdown when clicking outside
-    document.addEventListener("click", function(event) {
-      const dropdownButton = event.target.closest("button");
-      const dropdownMenu = document.getElementById("dropdownMenu");
-
-      if (!dropdownButton) {
-        dropdownMenu.classList.add("hidden");
-      }
-    });
-  </script>
+<script type="module" src="..//script/script.js"></script>
 
 </body>
 </html>

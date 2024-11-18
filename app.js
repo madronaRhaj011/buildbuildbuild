@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 const session = require('express-session');
 const flash = require('connect-flash');
-const routes = require('./router/routes')
+const routes = require('./router/routes');
 require('dotenv').config();
 
 
@@ -24,6 +24,8 @@ app.use((req, res, next) => {
     res.locals.success = req.flash('success'); // Set 'success' flash messages
     next();
 });
+
+
 
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended:true}));

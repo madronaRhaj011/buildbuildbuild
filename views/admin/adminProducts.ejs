@@ -57,10 +57,10 @@
         </div>
     </header>
 
-    <!-- Dashboard Content -->
     <main class="p-8">
         <div class="container w-full mx-auto px-2">
-            <div id='recipients' class="p-8 mt-6 rounded shadow bg-white">
+            <!-- Existing Table -->
+            <div id="recipients" class="p-8 mt-6 rounded shadow bg-white">
                 <table id="example" class="stripe hover" style="width:100%; padding-top: 1em; padding-bottom: 1em;">
                     <thead>
                         <tr>
@@ -72,7 +72,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% product.forEach(pr=> {%>
+                        <% product.forEach(pr => { %>
                         <tr>
                             <td><%= pr.product_id %></td>
                             <td><%= pr.name %></td>
@@ -86,8 +86,41 @@
                     </tbody>
                 </table>
             </div>
+    
+            <!-- Add Product Form -->
+            <div class="p-8 mt-8 rounded shadow bg-white">
+                <h2 class="text-xl font-semibold mb-4">Add New Product</h2>
+                <form action="/addProducts" method="post" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="productName" class="block text-sm font-medium text-gray-700">Product Name</label>
+                        <input type="text" name="productName" id="productName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Enter product name" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="productPrice" class="block text-sm font-medium text-gray-700">Price</label>
+                        <input type="text" name="price" id="productPrice" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Enter price" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="description" class="block text-sm font-medium text-gray-700">Product Description</label>
+                        <input type="text" name="description" id="description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Enter product name" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="productStock" class="block text-sm font-medium text-gray-700">Stock</label>
+                        <input type="text" name="stock" id="productStock" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Enter stock quantity" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="imgPrd" class="block text-sm font-medium text-gray-700">Product upload image</label>
+                        <input type="file" name="imgPrd" id="imgPrd" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Enter product name" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="productCategory" class="block text-sm font-medium text-gray-700">Product Category</label>
+                        <input type="text" name="category" id="productCategory" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Enter stock quantity" required>
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg">Add Product</button>
+                </form>
+            </div>
         </div>
     </main>
+    
 </div>
 
 <!-- Edit Modal -->
@@ -111,6 +144,9 @@
         </div>
     </form>
 </div>
+
+
+
 
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>

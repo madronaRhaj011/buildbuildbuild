@@ -1,3 +1,4 @@
+<%- include('partials/start') %>
 <%- include('partials/nav') %>
     <!-- Main Product Section -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-40" >
@@ -21,6 +22,7 @@
                             <span class="ml-4 inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-green-100 text-green-800">
                                 Save 25%
                             </span>
+                            <input type="hidden" name="totalPrice" value="<%= prod.price %>">
                             <input type="hidden" name="productId" value="<%= prod.product_id %>">
                             <input type="hidden" name="user_id" value="<%= user.id %>">
                         </div>
@@ -60,9 +62,9 @@
                     <div class="mt-8">
                         <label for="quantity" class="text-sm font-medium text-gray-700">Quantity</label>
                         <div class="mt-2 flex rounded-md">
-                            <button class="quantity-btn minus px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-l-md hover:bg-gray-50">-</button>
+                            <button class="quantity-btn minus px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-l-md hover:bg-gray-50" type="button">-</button>
                             <input type="number" id="quantity" name="quantity" class="w-20 border-t border-b border-gray-300 text-center" value="1" min="1">
-                            <button class="quantity-btn plus px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-r-md hover:bg-gray-50">+</button>
+                            <button class="quantity-btn plus px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-r-md hover:bg-gray-50" type="button">+</button>
                         </div>
                     </div>
     
@@ -91,7 +93,7 @@
                         <p class="mt-1 text-sm text-gray-500">High Quality</p>
                         <p class="mt-1 text-lg font-medium text-gray-900">&#8369;<%= pr.price %></p>
                         <button class="mt-2 w-full bg-gray-100 text-gray-800 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200">
-                            View Details
+                            <a href="/material-overview/<%= pr.product_id %>">View Details</a>
                         </button>
                     </div>
                 </div>
@@ -101,25 +103,38 @@
     </div>
 
     <script>
+        // Get the product price from the server-side template
+        const productPrice = parseFloat("<%= prod.price %>");
+
+        // Function to update the total price based on quantity
+        function updateTotalPrice() {
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const totalPrice = quantity * productPrice;
+            document.querySelector('input[name="totalPrice"]').value = totalPrice.toFixed(2); // Update the hidden totalPrice input
+        }
+
         // Quantity buttons functionality
         document.querySelectorAll('.quantity-btn').forEach(button => {
             button.addEventListener('click', () => {
                 const input = document.getElementById('quantity');
-                const currentValue = parseInt(input.value);
+                let currentValue = parseInt(input.value);
                 
                 if (button.classList.contains('plus')) {
                     input.value = currentValue + 1;
                 } else if (button.classList.contains('minus') && currentValue > 1) {
                     input.value = currentValue - 1;
                 }
+
+                updateTotalPrice(); // Update the total price whenever quantity changes
             });
         });
 
-        // Prevent manual input of negative numbers
+        // Prevent manual input of negative numbers and update total price
         document.getElementById('quantity').addEventListener('change', (e) => {
             if (e.target.value < 1) {
                 e.target.value = 1;
             }
+            updateTotalPrice(); // Update the total price on manual input
         });
 
         // Add to cart animation
@@ -135,5 +150,6 @@
             }, 2000);
         });
     </script>
+    <script type="module" src="..//script/script.js"></script>
 </body>
 </html>
