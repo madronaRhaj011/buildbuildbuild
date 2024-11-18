@@ -143,11 +143,9 @@ const show = {
         }
     
         const userId = req.session.user.id;
-        const currentPage = parseInt(req.query.page) || 1; // Get current page from query, default to 1
-        const offset = (currentPage - 1) * itemsPerPage;
     
         Promise.all([
-            User.getCartItems(userId, itemsPerPage, offset), // Pass limit and offset
+            User.getCartItems(userId), // Pass limit and offset
             new Promise((resolve, reject) => {
                 User.totalrecords(userId, (err, totalRecords) => {  
                     if (err) reject(err);
@@ -155,14 +153,10 @@ const show = {
                 });
             })
         ])
-        .then(([cartItemList, totalRecords]) => {
-            const totalPages = Math.ceil(totalRecords / itemsPerPage);
-    
+        .then(([cartItemList, totalRecords]) => {    
             res.render('cart', {
                 user: req.session.user,
                 cartItem: cartItemList,     // List of cart items
-                currentPage,                // Current page
-                totalPages,                 // Total pages for pagination
                 totalRecords                // Total record count
             });
         })

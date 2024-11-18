@@ -182,7 +182,7 @@ const user = {
         db.query(query, [data.username, data.email, id], callback);
     },
         // models/User.js
-    getCartItems: (id, limit, offset) => {
+    getCartItems: (id) => {
         return new Promise((resolve, reject) => {
             const query = `
                 SELECT 
@@ -198,9 +198,8 @@ const user = {
                 JOIN 
                     products ON cart.product_id = products.product_id
                 WHERE 
-                    cart.user_id = ?
-                LIMIT ? OFFSET ?`;
-            db.query(query, [id, limit, offset], (err, result) => {
+                    cart.user_id = ?`;
+            db.query(query, [id], (err, result) => {
                 if (err) {
                     return reject(err);
                 }
