@@ -6,14 +6,8 @@
   <title>Shopping Cart</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/x-icon" href="../tool.png">
-  <style>
-    #cart-items {
-      max-height: 500px; /* Set a max height for the cart items section */
-      overflow-y: auto; /* Enable vertical scrolling */
-    }
-  </style>
 </head>
-<body class="bg-gray-50 pt-20 overscroll-none" >
+<body class="bg-gray-50 pt-20 overscroll-none">
   <%- include('partials/nav') %>
   <div class="container mx-auto p-8">
     <h1 class="text-4xl font-bold text-gray-800 mb-10 text-center">Shopping Cart</h1>
@@ -58,7 +52,7 @@
         </div>
         <div class="flex justify-between border-b border-gray-200 pb-3 text-gray-700">
           <span class="font-medium">Shipping Estimate</span>
-          <span class="font-semibold text-gray-900">&#8369;<span id="shipping">5.00</span></span>
+          <span class="font-semibold text-gray-900">&#8369;<span id="shipping">800.00</span></span>
         </div>
         <div class="flex justify-between border-b border-gray-200 pb-4 text-gray-700">
           <span class="font-medium">Tax Estimate</span>
@@ -68,11 +62,10 @@
           <span>Total</span>
           <span>&#8369;<span id="total">0.00</span></span>
         </div>
-        <button class="w-full bg-indigo-600 text-white rounded-lg py-3 mt-6 font-semibold hover:bg-indigo-700 transition">Checkout</button>
+        <button class="checkout w-full bg-indigo-600 text-white rounded-lg py-3 mt-6 font-semibold hover:bg-indigo-700 transition">Checkout</button>
       </div>
       
     </div>
-    
   </div>
 
   <!-- Modal for Editing Quantity -->
@@ -158,7 +151,6 @@
       currentEditItem = null;
     });
 
-
     // Function to calculate and update totals
     function updateTotals() {
       let subtotal = 0;
@@ -181,7 +173,56 @@
 
     // Initialize totals on page load
     updateTotals();
+
+    // Function to collect selected items
+    function getCheckedItems() {
+    const selectedItems = [];
+    document.querySelectorAll('.cart-item').forEach(item => {
+        const checkbox = item.querySelector('.select-item');
+        if (checkbox.checked) {
+            selectedItems.push({
+                cartId: item.getAttribute('data-cart-id'),
+                productId: item.getAttribute('data-product-id'),
+                name: item.getAttribute('data-name'),
+                price: parseFloat(item.getAttribute('data-price')),
+                quantity: parseInt(item.querySelector('.quantity').value),
+            });
+        }
+    });
+    return selectedItems; // Returns an array of selected items
+  }
+
+
+    // Handle checkout
+    document.querySelector('button.checkout').addEventListener('click', async () => {
+    const checkedItems = getCheckedItems(); // Collect checked items
+    if (checkedItems.length === 0) {
+        alert('No items selected for checkout.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: checkedItems }), // Send items
+        });
+
+        if (response.ok) {
+            window.location.href = '/checkout'; // Redirect to the GET route
+        } else {
+            const error = await response.json();
+            alert(error.message || 'Failed to process your checkout.');
+        }
+    } catch (err) {
+        console.error('Error during checkout:', err);
+        alert('An error occurred. Please try again.');
+    }
+});
+
+
+
   </script>
-  <script type="module" src="..//script/script.js"></script>
+  <script type="module" src="../script/script.js"></script>
 </body>
 </html>

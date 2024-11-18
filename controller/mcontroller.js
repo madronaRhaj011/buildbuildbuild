@@ -225,6 +225,50 @@ const show = {
             res.status(500).send('Internal Server Error');
         });
     },
+    showCheckout: (req, res) => {
+        if (!req.session.user) {
+            req.flash('error', 'Please log in first');
+            return res.redirect('/login');
+        }
+    
+        const userId = req.session.user.id;
+        const items = req.session.checkoutItems;
+    
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            req.flash('error', 'No items selected for checkout.');
+            return res.redirect('/cart');
+        }
+    
+        console.log('User ID:', userId);
+        console.log('Checkout Items:', items);
+    
+        Promise.all([
+            User.getBillingDetail(userId),
+            new Promise((resolve, reject) => {
+                User.totalrecords(userId, (err, totalRecords) => {
+                    if (err) reject(err);
+                    else resolve(totalRecords);
+                });
+            }),
+        ])
+        .then(([billingDetail, totalRecords]) => {
+            res.render('checkout', {
+                user: req.session.user,
+                billing: billingDetail,
+                items: items,
+                totalRecords,
+            });
+        })
+        .catch(err => {
+            console.error('Error during checkout preparation:', err);
+            req.flash('error', 'Something went wrong. Please try again later.');
+            res.status(500).redirect('/cart');
+        });
+    }
+    
+    
+    
+    
     
     
     
@@ -528,7 +572,26 @@ const user = {
           }
           res.redirect('/billing-detail'); // Adjust redirection as needed
         });
-      }
+      },
+      checkoutSummary: (req, res) => {
+        const { items } = req.body;
+    
+        // Log items to debug
+        console.log('Received Items for Checkout:', items);
+    
+        // Validate items
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            req.flash('error', 'No items selected for checkout.');
+            return res.redirect('/cart');
+        }
+    
+        // Save the items to the session
+        req.session.checkoutItems = items;
+    
+        // Redirect to the GET route
+        res.status(200).send({ success: true });
+    }
+    
     
     
 

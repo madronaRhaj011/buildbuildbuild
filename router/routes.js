@@ -16,6 +16,7 @@ router.get('/reset-password', Mcontroller.show.showResetPassword);
 router.get('/cart', Mcontroller.show.showCart);
 router.get('/billing-detail', Mcontroller.show.showBillingDetail);
 router.get('/profile', Mcontroller.show.showProfile);
+router.get('/checkout', Mcontroller.show.showCheckout);
 
 
 router.get('/adminProduct', Mcontroller.admin.showProd);
@@ -32,6 +33,7 @@ router.post('/update-quantity', Mcontroller.user.updateQuantity);
 router.post('/updateProfile', Mcontroller.user.updateProfile); 
 router.post('/add-billing-address', Mcontroller.user.addBillingDetail); 
 router.get('/delete-cart-items/:id', Mcontroller.user.deleteCartItem);
+router.post('/checkout', Mcontroller.user.checkoutSummary);
 
 
 

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+  <div class="max-w-4xl mx-auto py-8">
+    <!-- Header -->
+    <h1 class="text-4xl font-bold text-center text-gray-900 mb-6">Checkout</h1>
+
+    <!-- Billing Details -->
+    <% billing.forEach(billing => { %>
+    <section class="bg-white shadow rounded-lg p-6 mb-6">
+      <h2 class="text-2xl font-semibold mb-4">Billing Information</h2>
+      <p class="mb-2"><span class="font-medium">Name:</span> <%= billing.fullname %></p>
+      <p class="mb-2"><span class="font-medium">Address:</span> <%= billing.address %></p>
+      <p><span class="font-medium">Contact:</span> <%= billing.contact %></p>
+    </section>
+    <% }) %>
+
+    <!-- Selected Items -->
+    <section class="bg-white shadow rounded-lg p-6 mb-6">
+      <h2 class="text-2xl font-semibold mb-4">Items for Checkout</h2>
+      <ul class="divide-y divide-gray-200">
+        <% items.forEach(item => { %>
+        <li class="py-4 flex justify-between items-center">
+          <div>
+            <h3 class="text-lg font-medium text-gray-900"><%= item.name %></h3>
+            <p class="text-sm text-gray-500">Quantity: <%= item.quantity %></p>
+            <p class="text-sm text-gray-500">Price: &#8369;<%= item.price %></p>
+          </div>
+          <div class="text-right">
+            <p class="text-lg font-semibold text-gray-800">Total: &#8369;<%= item.price * item.quantity %></p>
+          </div>
+        </li>
+        <% }) %>
+      </ul>
+    </section>
+
+    <!-- Total Records -->
+    <section class="bg-white shadow rounded-lg p-6 mb-6">
+      <h2 class="text-2xl font-semibold">Total Records</h2>
+      <p class="text-lg font-medium mt-2"><%= totalRecords %> items</p>
+    </section>
+
+    <!-- Checkout Button -->
+    <form action="/complete-checkout" method="POST" class="text-center">
+      <button type="submit"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+        Confirm and Pay
+      </button>
+    </form>
+  </div>
+</body>
+
+</html>
